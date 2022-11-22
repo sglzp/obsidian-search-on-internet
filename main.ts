@@ -142,10 +142,18 @@ export default class SearchOnInternetPlugin extends Plugin {
           activeView.frame.setAttr('src', url);
           activeView.url = url;
         } else {
-          const leaf = this.app.workspace.getLeaf(!(this.app.workspace.activeLeaf.view.getViewType() === 'empty'));
+          // Split the last open leaf
+          let newLeaf;
+          let count = 0;
+          this.app.workspace.iterateRootLeaves((leaf) => {
+              count += 1;
+              newLeaf = leaf;
+          });
+          newLeaf = this.app.workspace.createLeafBySplit(newLeaf, count % 2 ? 'vertical' : 'horizontal');
+          // const leaf = this.app.workspace.getLeaf(!(this.app.workspace.activeLeaf.view.getViewType() === 'empty'));
           // const leaf = this.app.workspace.splitActiveLeaf(this.settings.splitDirection);
-          const view = new SearchView(this, leaf, query, search.name, url);
-          await leaf.open(view);
+          const view = new SearchView(this, newLeaf, query, search.name, url);
+          await newLeaf.open(view);
         }
       } else {
         await open(url);
@@ -155,6 +163,7 @@ export default class SearchOnInternetPlugin extends Plugin {
     onunload() {
       console.log('unloading search-on-internet');
       document.off('contextmenu', '.markdown-preview-view', this.onDom, this.onDomSettings);
+      this.app.workspace.detachLeavesOfType('Search on Internet');
     }
 
     async loadSettings() {
