@@ -11,6 +11,7 @@ export interface SearchSetting {
 export interface SOISettings {
     searches: SearchSetting[];
     useIframe: boolean;
+    useHoverEditor: boolean;
 }
 
 export const DEFAULT_QUERY: SearchSetting = {
@@ -33,6 +34,7 @@ export const DEFAULT_SETTING: SOISettings = {
     encode: true,
   } as SearchSetting],
   useIframe: true,
+  useHoverEditor: false
 };
 
 const parseTags = function(inputs: string): string[] {
@@ -68,6 +70,19 @@ export class SOISettingTab extends PluginSettingTab {
                   this.plugin.saveData(this.plugin.settings);
                 });
           });
+
+      new Setting(containerEl)
+          .setName('Open in Hover Editor')
+          .setDesc('If set to true, this will open your searches in Hover Editor')
+          .addToggle((toggle) => {
+            if (!(this.app as any).plugins.plugins['obsidian-hover-editor']) 
+              toggle.setDisabled(true);
+            toggle.setValue(this.plugin.settings.useHoverEditor)
+                .onChange((new_value) => {
+                  this.plugin.settings.useHoverEditor = new_value;
+                  this.plugin.saveData(this.plugin.settings);
+                })
+          })
 
       // Code mostly taken from https://github.com/SilentVoid13/Templater/blob/master/src/settings.ts
       plugin.settings.searches.forEach((search) => {

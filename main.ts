@@ -138,22 +138,28 @@ export default class SearchOnInternetPlugin extends Plugin {
           .replace('{{query}}', encodedQuery);
       console.log(`SOI: Opening URL ${url}`);
       if (this.settings.useIframe) {
-        if (activeView) {
-          activeView.frame.setAttr('src', url);
-          activeView.url = url;
-        } else {
-          // Split the last open leaf
-          let newLeaf;
-          let count = 0;
-          this.app.workspace.iterateRootLeaves((leaf) => {
-              count += 1;
-              newLeaf = leaf;
-          });
-          newLeaf = this.app.workspace.createLeafBySplit(newLeaf, count % 2 ? 'vertical' : 'horizontal');
-          // const leaf = this.app.workspace.getLeaf(!(this.app.workspace.activeLeaf.view.getViewType() === 'empty'));
-          // const leaf = this.app.workspace.splitActiveLeaf(this.settings.splitDirection);
+        if (this.settings.useHoverEditor) {
+          const newLeaf = (this.app as any).plugins.plugins['obsidian-hover-editor'].spawnPopover();
           const view = new SearchView(this, newLeaf, query, search.name, url);
-          await newLeaf.open(view);
+          newLeaf.open(view);
+        } else {
+          if (activeView) {
+            activeView.frame.setAttr('src', url);
+            activeView.url = url;
+          } else {
+            // Split the last open leaf
+            let newLeaf;
+            let count = 0;
+            this.app.workspace.iterateRootLeaves((leaf) => {
+                count += 1;
+                newLeaf = leaf;
+            });
+            newLeaf = this.app.workspace.createLeafBySplit(newLeaf, count % 2 ? 'vertical' : 'horizontal');
+            // const leaf = this.app.workspace.getLeaf(!(this.app.workspace.activeLeaf.view.getViewType() === 'empty'));
+            // const leaf = this.app.workspace.splitActiveLeaf(this.settings.splitDirection);
+            const view = new SearchView(this, newLeaf, query, search.name, url);
+            await newLeaf.open(view);
+          }
         }
       } else {
         await open(url);
